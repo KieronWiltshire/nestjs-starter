@@ -3,6 +3,7 @@ import { CreateUserDto } from '../dtos/create-user.dto';
 import { UpdateUserDto } from '../dtos/update-user.dto';
 import { Injectable } from '@nestjs/common';
 import { KnexDao } from '../../database/knex/knex.dao';
+import { BaseTransaction } from 'src/database/base.transaction';
 
 @Injectable()
 export class UserDao extends KnexDao<UserDao> {
