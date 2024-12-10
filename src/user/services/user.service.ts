@@ -12,7 +12,7 @@ export class UserService {
 
   async doTransaction() {
     // create transaction
-    await this.userDao.transaction(async (trx: BaseTransaction<UserDao>) => {
+    await this.userDao.transaction(async (trx: BaseTransaction<any>) => {
       // create new instance using transaction
       const t = this.userDao.transacting(trx);
 
