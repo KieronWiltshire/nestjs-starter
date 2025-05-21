@@ -1,0 +1,67 @@
+services:
+  timescaledb:
+    image: timescale/timescaledb:latest-pg14
+    container_name: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ./.docker-compose/data/timescaledb:/var/lib/postgresql/data
+    networks:
+      - dev
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    restart: always
+    ports:
+      - 6379:6379
+    volumes:
+      - ./.docker-compose/data/redis:/data
+    networks:
+      - dev
+    
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    restart: always
+    depends_on:
+      - timescaledb
+    ports:
+      - 8082:80
+    environment:
+      - PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED=False
+      - PGADMIN_CONFIG_SERVER_MODE=False
+      - PGADMIN_DEFAULT_EMAIL=admin@admin.org
+      - PGADMIN_DEFAULT_PASSWORD=admin
+      - PGADMIN_LISTEN_PORT=80
+    volumes:
+      - ./.docker-compose/data/pgadmin:/var/lib/pgadmin
+    networks:
+      - dev
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: redis-commander
+    restart: always
+    depends_on:
+      - redis
+    ports:
+      - 8083:8081
+    environment:
+      - REDIS_HOSTS=local:redis:6379:1
+    networks:
+      - dev
+
+networks:
+  dev:
+    driver: bridge

@@ -1,0 +1,60 @@
+{
+  "rules": {
+    "projectStructure": {
+      "src": {
+        "required": ["app.module.ts", "main.ts", "config", "database", "filters", "modules", "redis"],
+        "modules": {
+          "optional": ["events", "dtos", "daos", "services", "controllers"]
+        }
+      }
+    },
+    "codeStyle": {
+      "typescript": {
+        "async": "required",
+        "errorHandling": {
+          "daos": {
+            "returnErrors": false,
+            "allowedReturns": ["data", "null"]
+          },
+          "services": {
+            "canThrowErrors": true,
+            "businessLogicOnly": true
+          },
+          "controllers": {
+            "httpErrorsOnly": true,
+            "mustHandleServiceErrors": true
+          }
+        },
+        "events": {
+          "immutable": true,
+          "readonly": true,
+          "typeOnly": true
+        },
+        "documentation": {
+          "controllers": {
+            "required": ["@nestjs/swagger"],
+            "decorators": ["@ApiOperation", "@ApiResponse"]
+          },
+          "dtos": {
+            "required": ["@nestjs/swagger"],
+            "propertyDecorators": true
+          }
+        }
+      }
+    },
+    "separationOfConcerns": {
+      "controllers": {
+        "allowed": ["http", "delegation"],
+        "forbidden": ["businessLogic"]
+      },
+      "services": {
+        "required": ["businessLogic"],
+        "allowed": ["dataOrchestration"]
+      },
+      "daos": {
+        "allowed": ["dataRetrieval", "dataPersistence"],
+        "forbidden": ["businessLogic", "errorThrowing"]
+      }
+    }
+  }
+} 
