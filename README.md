@@ -2,7 +2,30 @@
 
 This is an Enterprise grade starter template for building robust, scalable, and maintainable NestJS applications. It provides a solid foundation with best practices, security features, and production-ready configurations out of the box. The authentication system implements a secure JWT-based approach using JWKS (JSON Web Key Set) from your identity provider, while also supporting API key management for service-to-service communication.
 
-### Features
+## Table of Contents
+- [Description](#description)
+- [Features](#features)
+  - [User Provisioning](#user-provisioning)
+  - [Authorization](#authorization)
+- [Installation](#installation)
+  - [Dependencies](#dependencies)
+  - [Docker (Development)](#docker-development)
+  - [Manual (Development/Production)](#manual-developmentproduction)
+- [Deployment](#deployment)
+- [Testing](#testing)
+- [API Reference](#api-reference)
+- [Contributing](#contributing)
+  - [Project Structure](#project-structure)
+  - [Development Guidelines](#development-guidelines)
+    - [Database](#database)
+    - [Migrations](#migrations)
+    - [Transactions](#transactions)
+    - [Adding New Features](#adding-new-features)
+    - [Code Style](#code-style)
+- [Stay in touch](#stay-in-touch)
+- [License](#license)
+
+## Features
 
 - 🔐 **Authentication & Authorization**
   - JWT authentication with JWKS support
@@ -52,23 +75,6 @@ This is an Enterprise grade starter template for building robust, scalable, and 
 > - [SpiceDB](https://authzed.com/spicedb) - Open source, self-hostable authorization database
 > 
 > Developers should conduct their own research to evaluate similar options and choose the solution that best aligns with their specific requirements, considering factors such as deployment model, performance characteristics, and integration complexity.
-
-## Table of Contents
-- [Installation](#installation)
-  - [Dependencies](#dependencies)
-  - [Docker (Development)](#docker-development)
-  - [Manual (Development/Production)](#manual-developmentproduction)
-- [Deployment](#deployment)
-- [Testing](#testing)
-- [API Reference](#api-reference)
-- [Contributing](#contributing)
-  - [Project Structure](#project-structure)
-  - [Development Guidelines](#development-guidelines)
-    - [Database Migrations](#database-migrations)
-    - [Adding New Features](#adding-new-features)
-    - [Code Style](#code-style)
-- [Stay in touch](#stay-in-touch)
-- [License](#license)
 
 ## Installation
 Begin by copying the `.env.example` file to a `.env` file.
@@ -170,7 +176,9 @@ src/
 
 ### Development Guidelines
 
-#### Database Migrations
+#### Database
+
+##### Migrations
 This project uses Knex.js for database migrations. Here's how to work with migrations:
 
 1. Create a new migration:
@@ -190,6 +198,54 @@ $ npx knex migrate:rollback
 4. View migration status:
 ```bash
 $ npx knex migrate:status
+```
+
+##### Transactions
+Database transactions should be managed exclusively within the service layer. This ensures that:
+- Business logic remains atomic and consistent
+- Transaction boundaries align with business operations
+- Controllers remain focused on HTTP concerns
+- DAOs remain focused on data access patterns
+
+###### ⚠️ Transaction Checkpoints
+> Modern databases implement automatic checkpointing mechanisms that handle data persistence efficiently. 
+> As such, explicit checkpoint implementation is generally unnecessary. However, if your specific use case requires manual checkpointing, 
+> this would be the only exception where transactions should be managed within a DAO. In such cases, it's recommended to create a dedicated 
+> DAO specifically for checkpoint-related operations to maintain clear separation of concerns and code organization.
+
+Example of proper transaction usage in a service:
+```typescript
+@Injectable()
+export class UserService {
+  constructor(private readonly userDao: UserDao) {}
+
+  async createUser(userData: CreateUserDto): Promise<UserDto> {
+
+    // This will create a new transaction
+    this.userDao.transaction(async (trx) => {
+
+      // This creates new dao instances where all the methods on these instances when 
+      // called will use the transaction, this gives more flexibility, allowing you to 
+      // still use the dao instances and call methods which are outside of the transaction
+      // context
+      const userDao = this.userDao.transacting(trx);
+      const profileDao = this.profileDao.transacting(trx);
+
+      // This is called ignoring the transaction since it's using the original dao instance
+      const oldUser = this.userDao.findById(1)
+
+      // These are part of the transaction
+      const profile = await profileDao.create(...);
+      const user = await userDao.create({ ..., profileId: profile.id });
+
+      if (!user) {
+        throw new Error() // throwing an error aborts the transaction
+      }
+      
+      return user;
+    });
+  }
+}
 ```
 
 #### Adding New Features
@@ -220,6 +276,7 @@ When adding a new feature, follow these steps:
 - Use async/await for asynchronous operations
 - Implement proper error handling
 - Comment complex functions and classes
+- Database transactions should only be managed within service layer methods
 - Error handling responsibilities:
   - DAOs only return data or null, it should not throw errors
   - Services are responsible for business logic and are allowed to throw errors
@@ -241,27 +298,16 @@ When adding a new feature, follow these steps:
 
 - Authors
     - [Kieron Wiltshire](mailto:kieron.wiltshire@outlook.com)
+    - [Isaac Oyelowo](mailto:scopes_oye@yahoo.com)
 
 ## License
 
-MIT License
+Proprietary Software License
 
-Copyright (c) 2024 Kieron Wiltshire
+Copyright (c) 2024 Kieron Wiltshire. All Rights Reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This software and associated documentation files (the "Software") are proprietary and confidential. The Software is protected by copyright laws and international copyright treaties, as well as other intellectual property laws and treaties.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+No part of this Software may be reproduced, distributed, or transmitted in any form or by any means, including photocopying, recording, or other electronic or mechanical methods, without the prior written permission of the copyright holder.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Unauthorized copying, distribution, modification, public display, or public performance of the Software is strictly prohibited and may result in severe civil and criminal penalties.
