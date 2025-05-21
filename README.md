@@ -217,7 +217,10 @@ Example of proper transaction usage in a service:
 ```typescript
 @Injectable()
 export class UserService {
-  constructor(private readonly userDao: UserDao) {}
+  constructor(
+    private readonly userDao: UserDao,
+    private readonly profileDao: ProfileDao
+) {}
 
   async createUser(userData: CreateUserDto): Promise<UserDto> {
 
