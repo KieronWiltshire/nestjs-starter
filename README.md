@@ -6,7 +6,7 @@ This is an Enterprise grade starter template for building robust, scalable, and 
 
 - 🔐 **Authentication & Authorization**
   - JWT authentication with JWKS support
-  - API key management for service-to-service communication
+  - API key management for service-to-service communication (requires custom authorization checks)
 
 - 🏗️ **Architecture & Structure**
   - Modular architecture following NestJS best practices
