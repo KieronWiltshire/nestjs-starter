@@ -1,6 +1,6 @@
 ## Description
 
-This is an Enterprise grade starter template for building robust, scalable, and maintainable NestJS applications. It provides a solid foundation with best practices, security features, and production-ready configurations out of the box. The authentication system implements a secure JWT-based approach using JWKS (JSON Web Key Set) from your identity provider, while also supporting API key management for service-to-service communication.
+This is an enterprise grade starter template for building robust, scalable, and maintainable NestJS applications. It provides a solid foundation with best practices, security features, and production-ready configurations out of the box. The authentication system implements a secure JWT-based approach using JWKS (JSON Web Key Set) from your identity provider, while also supporting API key management for service-to-service communication.
 
 ## Table of Contents
 - [Description](#description)
@@ -45,8 +45,6 @@ This is an Enterprise grade starter template for building robust, scalable, and 
 
 - 🚀 **Production Ready**
   - Environment-based configuration
-  - Health check endpoints
-  - Rate limiting
   - CORS configuration via `helmet`
   - Error handling and validation
   - Request/Response serialization
@@ -217,10 +215,7 @@ Example of proper transaction usage in a service:
 ```typescript
 @Injectable()
 export class UserService {
-  constructor(
-    private readonly userDao: UserDao,
-    private readonly profileDao: ProfileDao
-) {}
+  constructor(private readonly userDao: UserDao) {}
 
   async createUser(userData: CreateUserDto): Promise<UserDto> {
 
